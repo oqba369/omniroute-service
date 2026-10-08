@@ -1,0 +1,6 @@
+FROM diegosouzapw/omniroute:latest
+
+ENV REQUIRE_API_KEY=false
+ENV OMNIROUTE_MEMORY_MB=512
+
+EXPOSE 10000
