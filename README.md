@@ -13,6 +13,7 @@ At startup, `OMNIROUTE_OPEN_ACCESS=true` applies the upstream
 `feature_flags.REQUIRE_API_KEY=false` settings. This is applied on each boot so a
 fresh Render filesystem does not bring the login prompt back. Existing provider
 connections, credentials, and unrelated settings are preserved.
+The bootstrap password is ignored while open access is enabled.
 
 To require gateway authentication again, set `OMNIROUTE_OPEN_ACCESS=false`,
 configure an administrator password, and redeploy.

@@ -6,6 +6,8 @@ import { configureAccess } from './configure-access.mjs';
 const env = bootstrapEnv({ quiet: true });
 Object.assign(process.env, env);
 const open = env.OMNIROUTE_OPEN_ACCESS === 'true';
+// INITIAL_PASSWORD otherwise makes upstream startup switch login back on.
+if (open) process.env.INITIAL_PASSWORD = '';
 configureAccess(resolveDataDir(null, env), { open });
 process.env.REQUIRE_API_KEY = String(!open);
 console.log(open
