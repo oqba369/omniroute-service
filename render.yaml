@@ -7,5 +7,7 @@ services:
     envVars:
       - key: REQUIRE_API_KEY
         value: "false"
+      - key: OMNIROUTE_OPEN_ACCESS
+        value: "true"
       - key: OMNIROUTE_MEMORY_MB
         value: "512"
