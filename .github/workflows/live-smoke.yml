@@ -1,0 +1,47 @@
+name: OmniRoute live smoke
+on:
+  push:
+    branches:
+      - diagnostics/check-live-omniroute-20261022
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check health, catalog, and an actual no-command model reply
+        shell: bash
+        run: |
+          set -u
+          base='https://omniroute-easy-gpu.onrender.com'
+          echo 'Checking healthz'
+          curl --silent --show-error --location --max-time 75 \
+            -o /tmp/health.txt -w 'health HTTP %{http_code}; duration %{time_total}s\n' "$base/healthz" || true
+          head -c 120 /tmp/health.txt || true
+          echo
+          echo 'Checking model catalog'
+          curl --silent --show-error --location --max-time 75 \
+            -o /tmp/models.json -w 'models HTTP %{http_code}; duration %{time_total}s\n' "$base/v1/models" || true
+          python3 - <<'PY'
+          import json
+          try:
+              v=json.load(open('/tmp/models.json'))
+              print('Model catalog entries:',len(v.get('data',[])), 'error:', str(v.get('error',''))[:100])
+          except Exception as e:
+              print('Catalog is not JSON:',type(e).__name__)
+          PY
+          echo 'Checking one minimal inference response (no PC tools)'
+          curl --silent --show-error --location --max-time 80 \
+            -H 'Content-Type: application/json' \
+            -d '{"model":"kc/minimax/minimax-m3.1-flash:free","messages":[{"role":"user","content":"Reply with OK."}],"stream":false}' \
+            -o /tmp/chat.json -w 'chat HTTP %{http_code}; duration %{time_total}s\n' "$base/v1/chat/completions" || true
+          python3 - <<'PY'
+          import json
+          try:
+              v=json.load(open('/tmp/chat.json'))
+              choice=(v.get('choices') or [{}])[0]
+              print('Inference success:', bool(choice.get('message') or choice.get('delta')))
+              print('API error:',str(v.get('error',''))[:240])
+          except Exception as e:
+              print('Inference reply is not JSON:',type(e).__name__)
+          PY
